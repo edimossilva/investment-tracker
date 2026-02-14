@@ -94,8 +94,16 @@ const chartOptions = computed(() => ({
     title: {
       display: true,
       text: 'Investment History',
+      font: { size: 14, weight: 'bold' as const },
+      color: '#0f172a',
+      padding: { bottom: 16 },
     },
     tooltip: {
+      backgroundColor: '#1e293b',
+      titleFont: { size: 12 },
+      bodyFont: { size: 12 },
+      cornerRadius: 8,
+      padding: 10,
       callbacks: {
         label: (context: { dataset: { label?: string }; parsed: { y: number | null } }) => {
           const label = context.dataset.label || ''
@@ -108,14 +116,22 @@ const chartOptions = computed(() => ({
     legend: {
       position: 'bottom' as const,
       labels: {
-        boxWidth: 20,
-        padding: 12,
+        boxWidth: 16,
+        padding: 16,
+        usePointStyle: true,
+        pointStyle: 'circle' as const,
+        font: { size: 12 },
+        color: '#475569',
       },
     },
   },
   scales: {
     y: {
+      grid: { color: '#f1f5f9' },
+      border: { display: false },
       ticks: {
+        color: '#94a3b8',
+        font: { size: 11 },
         callback: (value: string | number) => {
           if (typeof value === 'number') {
             return formatCurrency(value)
@@ -125,7 +141,11 @@ const chartOptions = computed(() => ({
       },
     },
     x: {
+      grid: { display: false },
+      border: { display: false },
       ticks: {
+        color: '#94a3b8',
+        font: { size: 11 },
         maxRotation: 45,
         autoSkip: true,
         maxTicksLimit: 20,
@@ -136,10 +156,22 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-  <div style="position: relative; height: 500px">
+  <div class="chart-wrapper">
     <Line v-if="chartData.datasets.length > 0" :data="chartData" :options="chartOptions" />
-    <p v-else style="text-align: center; color: #9ca3af; padding-top: 4rem">
-      Select at least one institution to display the chart.
-    </p>
+    <p v-else class="empty">Select at least one institution to display the chart.</p>
   </div>
 </template>
+
+<style scoped>
+.chart-wrapper {
+  position: relative;
+  height: 500px;
+}
+
+.empty {
+  text-align: center;
+  color: #94a3b8;
+  padding-top: 4rem;
+  margin: 0;
+}
+</style>

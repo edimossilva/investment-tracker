@@ -24,11 +24,64 @@ function formatCurrency(value: number): string {
 </script>
 
 <template>
-  <header style="margin-bottom: 1.5rem">
-    <h1 style="margin: 0 0 0.5rem 0; font-size: 1.5rem">Investment Tracker</h1>
-    <p style="margin: 0; color: #6b7280">
-      {{ selectedCount }} of {{ totalCount }} institutions selected &mdash; Latest total:
-      <strong>{{ formatCurrency(latestTotal) }}</strong>
-    </p>
+  <header class="header">
+    <div class="header-text">
+      <h1 class="title">Investment Tracker</h1>
+      <p class="subtitle">
+        {{ selectedCount }} of {{ totalCount }} institutions selected
+      </p>
+    </div>
+    <div class="total-card">
+      <span class="total-label">Portfolio Total</span>
+      <span class="total-value">{{ formatCurrency(latestTotal) }}</span>
+    </div>
   </header>
 </template>
+
+<style scoped>
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.total-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.total-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.total-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+</style>

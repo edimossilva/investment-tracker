@@ -5,24 +5,95 @@ const store = useInvestmentsStore()
 </script>
 
 <template>
-  <div style="margin-bottom: 1.5rem">
-    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem">
-      <button @click="store.selectAll()">Select All</button>
-      <button @click="store.selectNone()">Clear All</button>
+  <div class="institution-filter">
+    <div class="top-row">
+      <span class="label">Institutions</span>
+      <div class="actions">
+        <button class="action-btn" @click="store.selectAll()">Select All</button>
+        <button class="action-btn" @click="store.selectNone()">Clear All</button>
+      </div>
     </div>
-    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
-      <label
+    <div class="chips">
+      <button
         v-for="name in store.institutionNames"
         :key="name"
-        style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer"
+        class="chip"
+        :class="{ active: store.selectedInstitutions.has(name) }"
+        @click="store.toggleInstitution(name)"
       >
-        <input
-          type="checkbox"
-          :checked="store.selectedInstitutions.has(name)"
-          @change="store.toggleInstitution(name)"
-        />
         {{ name }}
-      </label>
+      </button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.institution-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #475569;
+}
+
+.actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #3b82f6;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+}
+
+.action-btn:hover {
+  color: #1d4ed8;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.chip {
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.chip:hover {
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+.chip.active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+</style>

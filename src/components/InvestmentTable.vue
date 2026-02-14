@@ -84,258 +84,287 @@ function totalPerfValue(di: number): number | null {
   if (prevAfter == null || curBefore == null) return null
   return curBefore - prevAfter
 }
+
+function colorClass(value: number | null): string {
+  if (value === null) return 'muted'
+  if (value > 0) return 'positive'
+  if (value < 0) return 'negative'
+  return ''
+}
 </script>
 
 <template>
-  <div style="margin-top: 2rem; overflow-x: auto">
-    <h2 style="font-size: 1.125rem; margin: 0 0 0.75rem 0">Investment Details</h2>
-    <table
-      v-if="institutionRows.length > 0"
-      style="border-collapse: collapse; font-size: 0.8125rem; text-align: right; white-space: nowrap"
-    >
-      <thead>
-        <tr>
-          <th
-            rowspan="2"
-            style="
-              text-align: left;
-              padding: 0.375rem 0.75rem;
-              position: sticky;
-              left: 0;
-              background: #fff;
-              z-index: 1;
-              border-bottom: 2px solid #e5e7eb;
-            "
-          >
-            Institution
-          </th>
-          <th
-            v-for="d in dates"
-            :key="d"
-            colspan="2"
-            style="
-              padding: 0.375rem 0.5rem;
-              text-align: center;
-              border-bottom: 1px solid #e5e7eb;
-            "
-          >
-            {{ formatDate(d) }}
-          </th>
-        </tr>
-        <tr style="border-bottom: 2px solid #e5e7eb">
-          <template v-for="d in dates" :key="d + '-sub'">
-            <th style="padding: 0.25rem 0.5rem; font-weight: 500; color: #6b7280">Before</th>
-            <th style="padding: 0.25rem 0.5rem; font-weight: 500; color: #6b7280">After</th>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-for="(row, idx) in institutionRows" :key="row.name">
-          <tr
-            :style="{
-              backgroundColor: idx % 2 === 0 ? '#f9fafb' : 'transparent',
-            }"
-          >
-            <td
-              style="
-                text-align: left;
-                padding: 0.375rem 0.75rem;
-                font-weight: 600;
-                position: sticky;
-                left: 0;
-                z-index: 1;
-              "
-              :style="{ backgroundColor: idx % 2 === 0 ? '#f9fafb' : '#fff' }"
-            >
-              {{ row.name }}
-            </td>
-            <template v-for="d in dates" :key="d">
-              <td style="padding: 0.25rem 0.5rem; color: #374151">
-                <template v-if="row.dateMap.has(d)">
-                  {{ formatCurrency(row.dateMap.get(d)!.amount_before_investment) }}
-                </template>
-                <span v-else style="color: #d1d5db">&mdash;</span>
-              </td>
-              <td style="padding: 0.25rem 0.5rem; color: #374151">
-                <template v-if="row.dateMap.has(d)">
-                  {{ formatCurrency(row.dateMap.get(d)!.amount_after_investment) }}
-                </template>
-                <span v-else style="color: #d1d5db">&mdash;</span>
-              </td>
+  <div class="table-wrapper">
+    <h2 class="table-title">Investment Details</h2>
+    <div class="table-scroll">
+      <table v-if="institutionRows.length > 0" class="table">
+        <thead>
+          <tr>
+            <th class="sticky-col header-col" rowspan="2">Institution</th>
+            <th v-for="d in dates" :key="d" colspan="2" class="date-header">
+              {{ formatDate(d) }}
+            </th>
+          </tr>
+          <tr class="sub-header">
+            <template v-for="d in dates" :key="d + '-sub'">
+              <th class="sub-header-cell">Before</th>
+              <th class="sub-header-cell">After</th>
             </template>
           </tr>
-          <tr
-            :style="{
-              backgroundColor: idx % 2 === 0 ? '#f9fafb' : 'transparent',
-              borderBottom: '1px solid #e5e7eb',
-            }"
-          >
-            <td
-              style="
-                text-align: left;
-                padding: 0.25rem 0.75rem;
-                font-style: italic;
-                color: #6b7280;
-                position: sticky;
-                left: 0;
-                z-index: 1;
-              "
-              :style="{ backgroundColor: idx % 2 === 0 ? '#f9fafb' : '#fff' }"
-            >
-              {{ row.name }} - performance %
-            </td>
-            <template v-for="(d, di) in dates" :key="d + '-perf'">
-              <td
-                colspan="2"
-                style="padding: 0.25rem 0.5rem; text-align: center"
-                :style="{
-                  color: performance(row, di) === null ? '#d1d5db'
-                    : performance(row, di)! > 0 ? '#3b82f6'
-                    : performance(row, di)! < 0 ? '#dc2626'
-                    : '#374151',
-                }"
-              >
-                <template v-if="performance(row, di) !== null">
-                  {{ performance(row, di)! > 0 ? '+' : '' }}{{ formatPercent(performance(row, di)!) }}
+        </thead>
+        <tbody>
+          <template v-for="(row, idx) in institutionRows" :key="row.name">
+            <tr :class="{ 'row-alt': idx % 2 === 0 }">
+              <td class="sticky-col name-cell" :class="{ 'row-alt': idx % 2 === 0 }">
+                {{ row.name }}
+              </td>
+              <template v-for="d in dates" :key="d">
+                <td class="value-cell">
+                  <template v-if="row.dateMap.has(d)">
+                    {{ formatCurrency(row.dateMap.get(d)!.amount_before_investment) }}
+                  </template>
+                  <span v-else class="muted">&mdash;</span>
+                </td>
+                <td class="value-cell">
+                  <template v-if="row.dateMap.has(d)">
+                    {{ formatCurrency(row.dateMap.get(d)!.amount_after_investment) }}
+                  </template>
+                  <span v-else class="muted">&mdash;</span>
+                </td>
+              </template>
+            </tr>
+            <tr :class="{ 'row-alt': idx % 2 === 0 }">
+              <td class="sticky-col perf-label" :class="{ 'row-alt': idx % 2 === 0 }">
+                {{ row.name }} - performance %
+              </td>
+              <template v-for="(d, di) in dates" :key="d + '-perf'">
+                <td colspan="2" class="perf-cell" :class="colorClass(performance(row, di))">
+                  <template v-if="performance(row, di) !== null">
+                    {{ performance(row, di)! > 0 ? '+' : '' }}{{ formatPercent(performance(row, di)!) }}
+                  </template>
+                  <span v-else>&mdash;</span>
+                </td>
+              </template>
+            </tr>
+            <tr class="group-last" :class="{ 'row-alt': idx % 2 === 0 }">
+              <td class="sticky-col perf-label" :class="{ 'row-alt': idx % 2 === 0 }">
+                {{ row.name }} - performance value
+              </td>
+              <template v-for="(d, di) in dates" :key="d + '-perfval'">
+                <td colspan="2" class="perf-cell" :class="colorClass(performanceValue(row, di))">
+                  <template v-if="performanceValue(row, di) !== null">
+                    {{ performanceValue(row, di)! > 0 ? '+' : '' }}{{ formatCurrency(performanceValue(row, di)!) }}
+                  </template>
+                  <span v-else>&mdash;</span>
+                </td>
+              </template>
+            </tr>
+          </template>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td class="sticky-col total-label">Total</td>
+            <template v-for="(t, di) in totals" :key="'total-' + di">
+              <td class="total-cell">{{ formatCurrency(t.before) }}</td>
+              <td class="total-cell">{{ formatCurrency(t.after) }}</td>
+            </template>
+          </tr>
+          <tr class="total-row">
+            <td class="sticky-col total-perf-label">Total - performance %</td>
+            <template v-for="(d, di) in dates" :key="d + '-total-perf'">
+              <td colspan="2" class="total-perf-cell" :class="colorClass(totalPerfPercent(di))">
+                <template v-if="totalPerfPercent(di) !== null">
+                  {{ totalPerfPercent(di)! > 0 ? '+' : '' }}{{ formatPercent(totalPerfPercent(di)!) }}
                 </template>
                 <span v-else>&mdash;</span>
               </td>
             </template>
           </tr>
-          <tr
-            :style="{
-              backgroundColor: idx % 2 === 0 ? '#f9fafb' : 'transparent',
-              borderBottom: '1px solid #e5e7eb',
-            }"
-          >
-            <td
-              style="
-                text-align: left;
-                padding: 0.25rem 0.75rem;
-                font-style: italic;
-                color: #6b7280;
-                position: sticky;
-                left: 0;
-                z-index: 1;
-              "
-              :style="{ backgroundColor: idx % 2 === 0 ? '#f9fafb' : '#fff' }"
-            >
-              {{ row.name }} - performance value
-            </td>
-            <template v-for="(d, di) in dates" :key="d + '-perfval'">
-              <td
-                colspan="2"
-                style="padding: 0.25rem 0.5rem; text-align: center"
-                :style="{
-                  color: performanceValue(row, di) === null ? '#d1d5db'
-                    : performanceValue(row, di)! > 0 ? '#3b82f6'
-                    : performanceValue(row, di)! < 0 ? '#dc2626'
-                    : '#374151',
-                }"
-              >
-                <template v-if="performanceValue(row, di) !== null">
-                  {{ performanceValue(row, di)! > 0 ? '+' : '' }}{{ formatCurrency(performanceValue(row, di)!) }}
+          <tr class="total-row total-last">
+            <td class="sticky-col total-perf-label">Total - performance value</td>
+            <template v-for="(d, di) in dates" :key="d + '-total-perfval'">
+              <td colspan="2" class="total-perf-cell" :class="colorClass(totalPerfValue(di))">
+                <template v-if="totalPerfValue(di) !== null">
+                  {{ totalPerfValue(di)! > 0 ? '+' : '' }}{{ formatCurrency(totalPerfValue(di)!) }}
                 </template>
                 <span v-else>&mdash;</span>
               </td>
             </template>
           </tr>
-        </template>
-      </tbody>
-      <tfoot>
-        <tr style="border-top: 2px solid #e5e7eb">
-          <td
-            style="
-              text-align: left;
-              padding: 0.375rem 0.75rem;
-              font-weight: 700;
-              position: sticky;
-              left: 0;
-              background: #fff;
-              z-index: 1;
-            "
-          >
-            Total
-          </td>
-          <template v-for="(t, di) in totals" :key="'total-' + di">
-            <td style="padding: 0.25rem 0.5rem; font-weight: 600; color: #374151">
-              {{ formatCurrency(t.before) }}
-            </td>
-            <td style="padding: 0.25rem 0.5rem; font-weight: 600; color: #374151">
-              {{ formatCurrency(t.after) }}
-            </td>
-          </template>
-        </tr>
-        <tr>
-          <td
-            style="
-              text-align: left;
-              padding: 0.25rem 0.75rem;
-              font-weight: 700;
-              font-style: italic;
-              color: #6b7280;
-              position: sticky;
-              left: 0;
-              background: #fff;
-              z-index: 1;
-            "
-          >
-            Total - performance %
-          </td>
-          <template v-for="(d, di) in dates" :key="d + '-total-perf'">
-            <td
-              colspan="2"
-              style="padding: 0.25rem 0.5rem; text-align: center; font-weight: 600"
-              :style="{
-                color: totalPerfPercent(di) === null ? '#d1d5db'
-                  : totalPerfPercent(di)! > 0 ? '#3b82f6'
-                  : totalPerfPercent(di)! < 0 ? '#dc2626'
-                  : '#374151',
-              }"
-            >
-              <template v-if="totalPerfPercent(di) !== null">
-                {{ totalPerfPercent(di)! > 0 ? '+' : '' }}{{ formatPercent(totalPerfPercent(di)!) }}
-              </template>
-              <span v-else>&mdash;</span>
-            </td>
-          </template>
-        </tr>
-        <tr style="border-bottom: 2px solid #e5e7eb">
-          <td
-            style="
-              text-align: left;
-              padding: 0.25rem 0.75rem;
-              font-weight: 700;
-              font-style: italic;
-              color: #6b7280;
-              position: sticky;
-              left: 0;
-              background: #fff;
-              z-index: 1;
-            "
-          >
-            Total - performance value
-          </td>
-          <template v-for="(d, di) in dates" :key="d + '-total-perfval'">
-            <td
-              colspan="2"
-              style="padding: 0.25rem 0.5rem; text-align: center; font-weight: 600"
-              :style="{
-                color: totalPerfValue(di) === null ? '#d1d5db'
-                  : totalPerfValue(di)! > 0 ? '#3b82f6'
-                  : totalPerfValue(di)! < 0 ? '#dc2626'
-                  : '#374151',
-              }"
-            >
-              <template v-if="totalPerfValue(di) !== null">
-                {{ totalPerfValue(di)! > 0 ? '+' : '' }}{{ formatCurrency(totalPerfValue(di)!) }}
-              </template>
-              <span v-else>&mdash;</span>
-            </td>
-          </template>
-        </tr>
-      </tfoot>
-    </table>
-    <p v-else style="color: #9ca3af">No data to display.</p>
+        </tfoot>
+      </table>
+    </div>
+    <p v-if="institutionRows.length === 0" class="empty">No data to display.</p>
   </div>
 </template>
+
+<style scoped>
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.table-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #0f172a;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  text-align: right;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* Header */
+.header-col {
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 600;
+  color: #334155;
+}
+
+.date-header {
+  padding: 0.5rem 0.5rem;
+  text-align: center;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #334155;
+}
+
+.sub-header {
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.sub-header-cell {
+  padding: 0.3rem 0.5rem;
+  font-weight: 500;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #f8fafc;
+}
+
+/* Sticky column */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+/* Body rows */
+.row-alt {
+  background-color: #f8fafc;
+}
+
+.name-cell {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.value-cell {
+  padding: 0.375rem 0.5rem;
+  color: #334155;
+}
+
+.perf-label {
+  text-align: left;
+  padding: 0.25rem 0.75rem;
+  font-style: italic;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.perf-cell {
+  padding: 0.25rem 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.group-last {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Footer */
+.total-row {
+  border-top: 2px solid #e2e8f0;
+}
+
+.total-row:first-child {
+  border-top: 3px solid #cbd5e1;
+}
+
+.total-last {
+  border-bottom: none;
+}
+
+.total-label {
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.total-cell {
+  padding: 0.375rem 0.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+.total-perf-label {
+  text-align: left;
+  padding: 0.375rem 0.75rem;
+  font-weight: 600;
+  font-style: italic;
+  color: #64748b;
+  font-size: 0.75rem;
+  background: #f8fafc;
+}
+
+.total-perf-cell {
+  padding: 0.375rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  background: #f8fafc;
+}
+
+/* Color classes */
+.positive {
+  color: #3b82f6;
+}
+
+.negative {
+  color: #dc2626;
+}
+
+.muted {
+  color: #d1d5db;
+}
+
+.empty {
+  color: #94a3b8;
+  text-align: center;
+  padding: 2rem 0;
+  margin: 0;
+}
+</style>
