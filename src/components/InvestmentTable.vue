@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useInvestmentsStore } from '@/stores/investments'
 
+const emit = defineEmits<{ editDate: [date: string] }>()
 const store = useInvestmentsStore()
 
 const dates = computed(() => {
@@ -85,6 +86,12 @@ function totalPerfValue(di: number): number | null {
   return curBefore - prevAfter
 }
 
+function deleteDate(date: string) {
+  if (confirm(`Delete entry for ${formatDate(date)}?`)) {
+    store.removeRecordsByDate(date)
+  }
+}
+
 function colorClass(value: number | null): string {
   if (value === null) return 'muted'
   if (value > 0) return 'positive'
@@ -102,7 +109,44 @@ function colorClass(value: number | null): string {
           <tr>
             <th class="sticky-col header-col" rowspan="2">Institution</th>
             <th v-for="d in dates" :key="d" colspan="2" class="date-header">
-              {{ formatDate(d) }}
+              <span class="date-header-content">
+                {{ formatDate(d) }}
+                <button class="btn-action" @click="emit('editDate', d)" title="Edit entry">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                <button class="btn-action btn-action-danger" @click="deleteDate(d)" title="Delete entry">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                </button>
+              </span>
             </th>
           </tr>
           <tr class="sub-header">
@@ -366,5 +410,32 @@ function colorClass(value: number | null): string {
   text-align: center;
   padding: 2rem 0;
   margin: 0;
+}
+
+.date-header-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-action {
+  border: none;
+  background: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.btn-action:hover {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.btn-action-danger:hover {
+  color: #dc2626;
+  background: #fee2e2;
 }
 </style>

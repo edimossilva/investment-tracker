@@ -4,6 +4,7 @@ import { useInvestmentsStore, type Period } from '@/stores/investments'
 const store = useInvestmentsStore()
 
 const options: { value: Period; label: string }[] = [
+  { value: 'past-3-months', label: 'Past 3 months' },
   { value: 'past-6-months', label: 'Past 6 months' },
   { value: 'past-12-months', label: 'Past 12 months' },
   { value: 'full-time', label: 'Full time' },

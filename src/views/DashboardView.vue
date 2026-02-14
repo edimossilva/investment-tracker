@@ -1,20 +1,39 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
 import PeriodFilter from '@/components/PeriodFilter.vue'
 import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
+import AddEntryModal from '@/components/AddEntryModal.vue'
+
+const showAddModal = ref(false)
+const editDate = ref<string>()
+
+function openEdit(date: string) {
+  editDate.value = date
+  showAddModal.value = true
+}
+
+function closeModal() {
+  showAddModal.value = false
+  editDate.value = undefined
+}
 </script>
 
 <template>
   <div class="dashboard">
-    <DashboardHeader />
+    <div class="header-row">
+      <DashboardHeader />
+      <button class="btn-add" @click="showAddModal = true">+ Add Entry</button>
+    </div>
+    <AddEntryModal v-if="showAddModal" :edit-date="editDate" @close="closeModal" />
     <div class="card filters-card">
       <PeriodFilter />
       <InstitutionFilter />
     </div>
     <div class="card">
-      <InvestmentTable />
+      <InvestmentTable @edit-date="openEdit" />
     </div>
     <div class="card">
       <InvestmentChart />
@@ -42,4 +61,33 @@ import InvestmentTable from '@/components/InvestmentTable.vue'
   flex-direction: column;
   gap: 0.25rem;
 }
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header-row > :first-child {
+  flex: 1;
+}
+
+.btn-add {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+}
+
+.btn-add:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
 </style>

@@ -3,19 +3,28 @@ import { ref, computed } from 'vue'
 import type { InstitutionData } from '@/types/investment'
 import rawData from '../../investments.json'
 
-const data = rawData as InstitutionData[]
+const STORAGE_KEY = 'investments-data'
 
-export type Period = 'full-time' | 'past-6-months' | 'past-12-months'
+function loadData(): InstitutionData[] {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored) return JSON.parse(stored) as InstitutionData[]
+  return rawData as InstitutionData[]
+}
+
+const data = loadData()
+
+export type Period = 'full-time' | 'past-3-months' | 'past-6-months' | 'past-12-months'
 
 export const useInvestmentsStore = defineStore('investments', () => {
   const institutions = ref<InstitutionData[]>(data)
   const selectedInstitutions = ref<Set<string>>(new Set(data.map((d) => d.institution)))
-  const selectedPeriod = ref<Period>('past-6-months')
+  const selectedPeriod = ref<Period>('past-3-months')
 
   const institutionNames = computed(() => institutions.value.map((d) => d.institution))
 
   const periodMonths: Record<Period, number | null> = {
     'full-time': null,
+    'past-3-months': 3,
     'past-6-months': 6,
     'past-12-months': 12,
   }
@@ -63,6 +72,44 @@ export const useInvestmentsStore = defineStore('investments', () => {
     selectedPeriod.value = period
   }
 
+  function addRecords(date: string, records: Map<string, { before: number; after: number }>) {
+    for (const inst of institutions.value) {
+      const entry = records.get(inst.institution)
+      if (!entry) continue
+      const last = inst.investments[inst.investments.length - 1]
+      const lastAfter = last?.amount_after_investment || 0
+      const before = entry.before || lastAfter
+      const after = entry.after || lastAfter
+      const newRecord = {
+        date,
+        amount_before_investment: before,
+        amount_after_investment: after,
+      }
+      const idx = inst.investments.findIndex((r) => r.date >= date)
+      if (idx === -1) {
+        inst.investments.push(newRecord)
+      } else if (inst.investments[idx]!.date === date) {
+        inst.investments[idx] = newRecord
+      } else {
+        inst.investments.splice(idx, 0, newRecord)
+      }
+    }
+    // Trigger reactivity
+    institutions.value = [...institutions.value]
+  }
+
+  function removeRecordsByDate(date: string) {
+    for (const inst of institutions.value) {
+      inst.investments = inst.investments.filter((r) => r.date !== date)
+    }
+    institutions.value = [...institutions.value]
+    saveData()
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(institutions.value))
+  }
+
   return {
     institutions,
     selectedInstitutions,
@@ -73,5 +120,8 @@ export const useInvestmentsStore = defineStore('investments', () => {
     selectAll,
     selectNone,
     setPeriod,
+    addRecords,
+    removeRecordsByDate,
+    saveData,
   }
 })
