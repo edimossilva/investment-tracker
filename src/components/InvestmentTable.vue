@@ -179,6 +179,18 @@ function colorClass(value: number | null): string {
             </tr>
             <tr :class="{ 'row-alt': idx % 2 === 0 }">
               <td class="sticky-col perf-label" :class="{ 'row-alt': idx % 2 === 0 }">
+                {{ row.name }} - added value</td>
+              <template v-for="d in dates" :key="d + '-added'">
+                <td colspan="2" class="perf-cell" :class="row.dateMap.has(d) ? colorClass(row.dateMap.get(d)!.amount_after_investment - row.dateMap.get(d)!.amount_before_investment) : ''">
+                  <template v-if="row.dateMap.has(d)">
+                    {{ formatCurrency(row.dateMap.get(d)!.amount_after_investment - row.dateMap.get(d)!.amount_before_investment) }}
+                  </template>
+                  <span v-else>&mdash;</span>
+                </td>
+              </template>
+            </tr>
+            <tr :class="{ 'row-alt': idx % 2 === 0 }">
+              <td class="sticky-col perf-label" :class="{ 'row-alt': idx % 2 === 0 }">
                 {{ row.name }} - performance %
               </td>
               <template v-for="(d, di) in dates" :key="d + '-perf'">
@@ -211,6 +223,14 @@ function colorClass(value: number | null): string {
             <template v-for="(t, di) in totals" :key="'total-' + di">
               <td class="total-cell">{{ formatCurrency(t.before) }}</td>
               <td class="total-cell">{{ formatCurrency(t.after) }}</td>
+            </template>
+          </tr>
+          <tr class="total-row">
+            <td class="sticky-col total-perf-label">Total - added value</td>
+            <template v-for="(t, di) in totals" :key="'total-added-' + di">
+              <td colspan="2" class="total-perf-cell" :class="colorClass(t.after - t.before)">
+                {{ formatCurrency(t.after - t.before) }}
+              </td>
             </template>
           </tr>
           <tr class="total-row">
