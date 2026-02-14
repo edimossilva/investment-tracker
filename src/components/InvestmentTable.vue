@@ -53,6 +53,37 @@ function performanceValue(row: { dateMap: Map<string, { amount_before_investment
 function formatPercent(value: number): string {
   return value.toFixed(2) + '%'
 }
+
+const totals = computed(() =>
+  dates.value.map((d) => {
+    let before = 0
+    let after = 0
+    for (const row of institutionRows.value) {
+      const rec = row.dateMap.get(d)
+      if (rec) {
+        before += rec.amount_before_investment
+        after += rec.amount_after_investment
+      }
+    }
+    return { before, after }
+  }),
+)
+
+function totalPerfPercent(di: number): number | null {
+  if (di === 0) return null
+  const prevAfter = totals.value[di - 1]?.after
+  const curBefore = totals.value[di]?.before
+  if (prevAfter == null || curBefore == null || prevAfter === 0) return null
+  return ((curBefore - prevAfter) / prevAfter) * 100
+}
+
+function totalPerfValue(di: number): number | null {
+  if (di === 0) return null
+  const prevAfter = totals.value[di - 1]?.after
+  const curBefore = totals.value[di]?.before
+  if (prevAfter == null || curBefore == null) return null
+  return curBefore - prevAfter
+}
 </script>
 
 <template>
@@ -211,6 +242,99 @@ function formatPercent(value: number): string {
           </tr>
         </template>
       </tbody>
+      <tfoot>
+        <tr style="border-top: 2px solid #e5e7eb">
+          <td
+            style="
+              text-align: left;
+              padding: 0.375rem 0.75rem;
+              font-weight: 700;
+              position: sticky;
+              left: 0;
+              background: #fff;
+              z-index: 1;
+            "
+          >
+            Total
+          </td>
+          <template v-for="(t, di) in totals" :key="'total-' + di">
+            <td style="padding: 0.25rem 0.5rem; font-weight: 600; color: #374151">
+              {{ formatCurrency(t.before) }}
+            </td>
+            <td style="padding: 0.25rem 0.5rem; font-weight: 600; color: #374151">
+              {{ formatCurrency(t.after) }}
+            </td>
+          </template>
+        </tr>
+        <tr>
+          <td
+            style="
+              text-align: left;
+              padding: 0.25rem 0.75rem;
+              font-weight: 700;
+              font-style: italic;
+              color: #6b7280;
+              position: sticky;
+              left: 0;
+              background: #fff;
+              z-index: 1;
+            "
+          >
+            Total - performance %
+          </td>
+          <template v-for="(d, di) in dates" :key="d + '-total-perf'">
+            <td
+              colspan="2"
+              style="padding: 0.25rem 0.5rem; text-align: center; font-weight: 600"
+              :style="{
+                color: totalPerfPercent(di) === null ? '#d1d5db'
+                  : totalPerfPercent(di)! > 0 ? '#3b82f6'
+                  : totalPerfPercent(di)! < 0 ? '#dc2626'
+                  : '#374151',
+              }"
+            >
+              <template v-if="totalPerfPercent(di) !== null">
+                {{ totalPerfPercent(di)! > 0 ? '+' : '' }}{{ formatPercent(totalPerfPercent(di)!) }}
+              </template>
+              <span v-else>&mdash;</span>
+            </td>
+          </template>
+        </tr>
+        <tr style="border-bottom: 2px solid #e5e7eb">
+          <td
+            style="
+              text-align: left;
+              padding: 0.25rem 0.75rem;
+              font-weight: 700;
+              font-style: italic;
+              color: #6b7280;
+              position: sticky;
+              left: 0;
+              background: #fff;
+              z-index: 1;
+            "
+          >
+            Total - performance value
+          </td>
+          <template v-for="(d, di) in dates" :key="d + '-total-perfval'">
+            <td
+              colspan="2"
+              style="padding: 0.25rem 0.5rem; text-align: center; font-weight: 600"
+              :style="{
+                color: totalPerfValue(di) === null ? '#d1d5db'
+                  : totalPerfValue(di)! > 0 ? '#3b82f6'
+                  : totalPerfValue(di)! < 0 ? '#dc2626'
+                  : '#374151',
+              }"
+            >
+              <template v-if="totalPerfValue(di) !== null">
+                {{ totalPerfValue(di)! > 0 ? '+' : '' }}{{ formatCurrency(totalPerfValue(di)!) }}
+              </template>
+              <span v-else>&mdash;</span>
+            </td>
+          </template>
+        </tr>
+      </tfoot>
     </table>
     <p v-else style="color: #9ca3af">No data to display.</p>
   </div>
