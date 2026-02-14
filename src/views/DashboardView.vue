@@ -3,6 +3,7 @@ import DashboardHeader from '@/components/DashboardHeader.vue'
 import PeriodFilter from '@/components/PeriodFilter.vue'
 import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
+import InvestmentTable from '@/components/InvestmentTable.vue'
 </script>
 
 <template>
@@ -11,5 +12,6 @@ import InvestmentChart from '@/components/InvestmentChart.vue'
     <PeriodFilter />
     <InstitutionFilter />
     <InvestmentChart />
+    <InvestmentTable />
   </div>
 </template>
