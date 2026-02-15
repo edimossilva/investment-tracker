@@ -50,6 +50,12 @@ const lastValueAdded = computed(() => {
   return last.after - last.before
 })
 
+const initialAddition = computed(() => {
+  const t = totals.value
+  if (t.length === 0) return null
+  return t[0]!.before
+})
+
 const lastPerfPercent = computed(() => {
   const t = totals.value
   if (t.length < 2) return null
@@ -129,10 +135,14 @@ interface Metric {
   format: 'currency' | 'percent'
 }
 
-const metrics = computed<Metric[]>(() => [
+const valueAddedMetrics = computed<Metric[]>(() => [
+  { label: 'Initial Addition', value: initialAddition.value, format: 'currency' },
   { label: 'Value Added (Last Month)', value: lastValueAdded.value, format: 'currency' },
   { label: 'Avg Value Added', value: avgValueAdded.value, format: 'currency' },
   { label: 'Total Value Added', value: totalValueAdded.value, format: 'currency' },
+])
+
+const performanceMetrics = computed<Metric[]>(() => [
   { label: 'Performance % (Last Month)', value: lastPerfPercent.value, format: 'percent' },
   { label: 'Performance Value (Last Month)', value: lastPerfValue.value, format: 'currency' },
   { label: 'Total Performance Value', value: totalPerfValue.value, format: 'currency' },
@@ -141,51 +151,76 @@ const metrics = computed<Metric[]>(() => [
 </script>
 
 <template>
-  <div class="summary-board">
-    <div class="summary-header">
-      <h3 class="summary-title">Portfolio Summary</h3>
-      <span class="period-badge">{{ periodLabels[store.selectedPeriod] }}</span>
+  <div class="summary-wrapper">
+    <div class="summary-card">
+      <div class="card-header">
+        <h4 class="card-title">Value Added</h4>
+        <span class="period-badge">{{ periodLabels[store.selectedPeriod] }}</span>
+      </div>
+      <div class="metric-list">
+        <div v-for="m in valueAddedMetrics" :key="m.label" class="metric-row">
+          <span class="metric-label">{{ m.label }}</span>
+          <span
+            v-if="m.value !== null"
+            class="metric-value"
+            :class="colorClass(m.value)"
+          >
+            {{ m.format === 'currency' ? formatCurrencySigned(m.value) : formatPercent(m.value) }}
+          </span>
+          <span v-else class="metric-value muted">&mdash;</span>
+        </div>
+      </div>
     </div>
-    <div class="metric-list">
-      <div v-for="m in metrics" :key="m.label" class="metric-row">
-        <span class="metric-label">{{ m.label }}</span>
-        <span
-          v-if="m.value !== null"
-          class="metric-value"
-          :class="colorClass(m.value)"
-        >
-          {{ m.format === 'currency' ? formatCurrencySigned(m.value) : formatPercent(m.value) }}
-        </span>
-        <span v-else class="metric-value muted">&mdash;</span>
+    <div class="summary-card">
+      <div class="card-header">
+        <h4 class="card-title">Performance</h4>
+        <span class="period-badge">{{ periodLabels[store.selectedPeriod] }}</span>
+      </div>
+      <div class="metric-list">
+        <div v-for="m in performanceMetrics" :key="m.label" class="metric-row">
+          <span class="metric-label">{{ m.label }}</span>
+          <span
+            v-if="m.value !== null"
+            class="metric-value"
+            :class="colorClass(m.value)"
+          >
+            {{ m.format === 'currency' ? formatCurrencySigned(m.value) : formatPercent(m.value) }}
+          </span>
+          <span v-else class="metric-value muted">&mdash;</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.summary-board {
+.summary-wrapper {
+  display: contents;
+}
+
+.summary-card {
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  min-width: 260px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.summary-header {
+.card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.summary-title {
+.card-title {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #334155;
 }
 
 .period-badge {
