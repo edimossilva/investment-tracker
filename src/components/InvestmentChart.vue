@@ -312,6 +312,7 @@ const chartOptions = computed(() => ({
 .chart-wrapper {
   position: relative;
   height: 500px;
+  width: 100%;
 }
 
 .empty {

@@ -61,6 +61,7 @@ async function handleSignIn() {
     </div>
     <div class="summary-row">
       <div class="card filters-card">
+        <h2 class="card-title">Filters</h2>
         <PeriodFilter />
         <InstitutionFilter />
       </div>
@@ -69,7 +70,8 @@ async function handleSignIn() {
     <div class="card">
       <InvestmentTable />
     </div>
-    <div class="card">
+    <div class="card chart-card">
+      <h2 class="card-title">Chart</h2>
       <ChartModeSelector />
       <InvestmentChart />
     </div>
@@ -91,11 +93,26 @@ async function handleSignIn() {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+.card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: center;
+}
+
 .filters-card {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   flex: 1;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .summary-row {

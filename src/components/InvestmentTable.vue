@@ -352,8 +352,9 @@ function exportCsv() {
 
 .table-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .table-title {
@@ -361,6 +362,7 @@ function exportCsv() {
   font-weight: 600;
   margin: 0;
   color: #0f172a;
+  text-align: center;
 }
 
 .header-buttons {

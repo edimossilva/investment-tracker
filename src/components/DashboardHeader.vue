@@ -4,9 +4,6 @@ import { useInvestmentsStore } from '@/stores/investments'
 
 const store = useInvestmentsStore()
 
-const selectedCount = computed(() => store.selectedInstitutions.size)
-const totalCount = computed(() => store.institutionNames.length)
-
 const dates = computed(() => {
   const dateSet = new Set<string>()
   for (const inst of store.filteredInstitutions) {
@@ -72,13 +69,8 @@ function formatCurrency(value: number): string {
 
 <template>
   <header class="header">
-    <div class="header-text">
-      <h1 class="title">Investment Tracker</h1>
-      <p class="subtitle">
-        {{ selectedCount }} of {{ totalCount }} institutions selected
-      </p>
-    </div>
     <div class="total-card">
+      <span class="total-title">Investments Summary</span>
       <div class="total-formula">
         <div class="formula-col">
           <span class="formula-label">Initial Addition</span>
@@ -107,30 +99,13 @@ function formatCurrency(value: number): string {
 <style scoped>
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.025em;
-}
-
-.subtitle {
-  margin: 0.25rem 0 0;
-  color: #64748b;
-  font-size: 0.875rem;
+  justify-content: center;
 }
 
 .total-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   background: linear-gradient(135deg, #3b82f6, #6366f1);
   color: #fff;
   padding: 0.75rem 2rem;
@@ -165,6 +140,14 @@ function formatCurrency(value: number): string {
 .formula-value {
   font-size: 1.1rem;
   font-weight: 700;
+}
+
+.total-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.9;
 }
 
 .formula-op {

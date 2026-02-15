@@ -211,9 +211,9 @@ const performanceMetrics = computed<Metric[]>(() => [
 
 .card-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.25rem;
 }
 
 .card-title {
@@ -221,6 +221,7 @@ const performanceMetrics = computed<Metric[]>(() => [
   font-size: 0.875rem;
   font-weight: 600;
   color: #334155;
+  text-align: center;
 }
 
 .period-badge {
