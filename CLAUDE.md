@@ -15,6 +15,7 @@ yarn test:unit     # Run unit tests (Vitest)
 yarn lint          # Run both oxlint and eslint sequentially
 yarn format        # Format with Prettier
 yarn type-check    # Run vue-tsc type checking
+yarn build && firebase deploy --only hosting  # Build and deploy to Firebase Hosting
 ```
 
 ## Architecture
