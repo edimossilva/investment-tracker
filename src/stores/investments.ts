@@ -132,11 +132,19 @@ export const useInvestmentsStore = defineStore('investments', () => {
       .catch(() => show('Failed to save to database', 'error'))
   }
 
-  function loadForUser(uid: string) {
+  async function loadForUser(uid: string) {
     currentUid.value = uid
-    const data = loadDataForUser(uid)
-    institutions.value = data
-    selectedInstitutions.value = new Set(data.map((d) => d.institution))
+    const local = loadDataForUser(uid)
+    institutions.value = local
+    selectedInstitutions.value = new Set(local.map((d) => d.institution))
+    try {
+      const remote = await pullData()
+      institutions.value = remote
+      selectedInstitutions.value = new Set(remote.map((d) => d.institution))
+      saveLocal()
+    } catch {
+      // No remote data or offline — keep local data
+    }
   }
 
   function clearData() {
