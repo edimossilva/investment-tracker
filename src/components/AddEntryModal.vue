@@ -45,7 +45,6 @@ function save() {
     records.set(e.institution, { before: e.before, after: e.after })
   }
   store.addRecords(date.value, records)
-  store.saveData()
   emit('close')
 }
 </script>

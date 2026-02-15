@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { InstitutionData } from '@/types/investment'
 import { pushData, pullData } from '@/services/firestore-sync'
+import { useToast } from '@/composables/useToast'
 
 const STORAGE_PREFIX = 'investments-data-'
 
@@ -105,6 +106,7 @@ export const useInvestmentsStore = defineStore('investments', () => {
     }
     // Trigger reactivity
     institutions.value = [...institutions.value]
+    saveData()
   }
 
   function addInstitution(name: string) {
@@ -124,6 +126,10 @@ export const useInvestmentsStore = defineStore('investments', () => {
   function saveData() {
     if (!currentUid.value) return
     localStorage.setItem(storageKey(currentUid.value), JSON.stringify(institutions.value))
+    const { show } = useToast()
+    pushData(institutions.value)
+      .then(() => show('Data saved to database', 'success'))
+      .catch(() => show('Failed to save to database', 'error'))
   }
 
   function loadForUser(uid: string) {
@@ -143,11 +149,16 @@ export const useInvestmentsStore = defineStore('investments', () => {
     await pushData(institutions.value)
   }
 
+  function saveLocal() {
+    if (!currentUid.value) return
+    localStorage.setItem(storageKey(currentUid.value), JSON.stringify(institutions.value))
+  }
+
   async function pullFromRemote() {
     const data = await pullData()
     institutions.value = data
     selectedInstitutions.value = new Set(data.map((d) => d.institution))
-    saveData()
+    saveLocal()
   }
 
   return {

@@ -2,39 +2,36 @@
 import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useInvestmentsStore } from '@/stores/investments'
+import { useToast } from '@/composables/useToast'
 
 const { user, signIn, signOut } = useAuth()
 const store = useInvestmentsStore()
+const toast = useToast()
 
 const loading = ref(false)
-const status = ref('')
 const menuOpen = ref(false)
 
 async function handlePush() {
   loading.value = true
-  status.value = ''
   try {
     await store.pushToRemote()
-    status.value = 'Pushed!'
+    toast.show('Data saved to database', 'success')
   } catch (e: unknown) {
-    status.value = e instanceof Error ? e.message : 'Push failed'
+    toast.show(e instanceof Error ? e.message : 'Push failed', 'error')
   } finally {
     loading.value = false
-    setTimeout(() => (status.value = ''), 3000)
   }
 }
 
 async function handlePull() {
   loading.value = true
-  status.value = ''
   try {
     await store.pullFromRemote()
-    status.value = 'Pulled!'
+    toast.show('Data loaded from database', 'success')
   } catch (e: unknown) {
-    status.value = e instanceof Error ? e.message : 'Pull failed'
+    toast.show(e instanceof Error ? e.message : 'Pull failed', 'error')
   } finally {
     loading.value = false
-    setTimeout(() => (status.value = ''), 3000)
   }
 }
 
@@ -43,8 +40,7 @@ async function handleSignIn() {
   try {
     await signIn()
   } catch {
-    status.value = 'Sign-in failed'
-    setTimeout(() => (status.value = ''), 3000)
+    toast.show('Sign-in failed', 'error')
   } finally {
     loading.value = false
   }
@@ -52,7 +48,6 @@ async function handleSignIn() {
 
 async function handleSignOut() {
   await signOut()
-  status.value = ''
 }
 </script>
 
@@ -110,7 +105,6 @@ async function handleSignOut() {
         </div>
       </div>
     </template>
-    <span v-if="status" class="sync-status">{{ status }}</span>
   </div>
 </template>
 
@@ -227,9 +221,4 @@ async function handleSignOut() {
   background: #fef2f2;
 }
 
-.sync-status {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-style: italic;
-}
 </style>
