@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useInvestmentsStore } from '@/stores/investments'
+import AddEntryModal from '@/components/AddEntryModal.vue'
 
-const emit = defineEmits<{ editDate: [date: string] }>()
 const store = useInvestmentsStore()
+
+const showAddModal = ref(false)
+const editDate = ref<string>()
+
+function openEdit(date: string) {
+  editDate.value = date
+  showAddModal.value = true
+}
+
+function closeModal() {
+  showAddModal.value = false
+  editDate.value = undefined
+}
 
 const dates = computed(() => {
   const dateSet = new Set<string>()
@@ -27,8 +40,8 @@ function formatCurrency(value: number): string {
 }
 
 function formatDate(iso: string): string {
-  const [y, m] = iso.split('-')
-  return `${m}/${y}`
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
 }
 
 function performance(row: { dateMap: Map<string, { amount_before_investment: number; amount_after_investment: number }> }, dateIndex: number): number | null {
@@ -98,11 +111,78 @@ function colorClass(value: number | null): string {
   if (value < 0) return 'negative'
   return ''
 }
+
+function exportCsv() {
+  const cols = dates.value
+  const header = ['Institution', ...cols.flatMap((d) => [`${formatDate(d)} Before`, `${formatDate(d)} After`])]
+  const rows: string[][] = [header]
+
+  for (const row of institutionRows.value) {
+    const values = cols.flatMap((d) => {
+      const rec = row.dateMap.get(d)
+      return rec ? [String(rec.amount_before_investment), String(rec.amount_after_investment)] : ['', '']
+    })
+    rows.push([row.name, ...values])
+
+    const addedValues = cols.flatMap((d) => {
+      const rec = row.dateMap.get(d)
+      return rec ? [String(rec.amount_after_investment - rec.amount_before_investment), ''] : ['', '']
+    })
+    rows.push([`${row.name} - added value`, ...addedValues])
+
+    const perfValues = cols.flatMap((_, di) => {
+      const p = performance(row, di)
+      return p !== null ? [formatPercent(p), ''] : ['', '']
+    })
+    rows.push([`${row.name} - performance %`, ...perfValues])
+
+    const perfValValues = cols.flatMap((_, di) => {
+      const p = performanceValue(row, di)
+      return p !== null ? [String(p), ''] : ['', '']
+    })
+    rows.push([`${row.name} - performance value`, ...perfValValues])
+  }
+
+  const totalValues = totals.value.flatMap((t) => [String(t.before), String(t.after)])
+  rows.push(['Total', ...totalValues])
+
+  const totalAdded = totals.value.flatMap((t) => [String(t.after - t.before), ''])
+  rows.push(['Total - added value', ...totalAdded])
+
+  const totalPerf = cols.flatMap((_, di) => {
+    const p = totalPerfPercent(di)
+    return p !== null ? [formatPercent(p), ''] : ['', '']
+  })
+  rows.push(['Total - performance %', ...totalPerf])
+
+  const totalPerfVal = cols.flatMap((_, di) => {
+    const p = totalPerfValue(di)
+    return p !== null ? [String(p), ''] : ['', '']
+  })
+  rows.push(['Total - performance value', ...totalPerfVal])
+
+  const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'investments.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
   <div class="table-wrapper">
-    <h2 class="table-title">Investment Details</h2>
+    <div class="table-header">
+      <h2 class="table-title">Investment Details</h2>
+      <div class="header-buttons">
+        <button class="btn-export" @click="showAddModal = true">+ Add Entry</button>
+        <button v-if="institutionRows.length > 0" class="btn-export" @click="exportCsv">
+          Export to CSV
+        </button>
+      </div>
+    </div>
     <div class="table-scroll">
       <table v-if="institutionRows.length > 0" class="table">
         <thead>
@@ -111,7 +191,7 @@ function colorClass(value: number | null): string {
             <th v-for="d in dates" :key="d" colspan="2" class="date-header">
               <span class="date-header-content">
                 {{ formatDate(d) }}
-                <button class="btn-action" @click="emit('editDate', d)" title="Edit entry">
+                <button class="btn-action" @click="openEdit(d)" title="Edit entry">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="12"
@@ -259,6 +339,7 @@ function colorClass(value: number | null): string {
       </table>
     </div>
     <p v-if="institutionRows.length === 0" class="empty">No data to display.</p>
+    <AddEntryModal v-if="showAddModal" :edit-date="editDate" @close="closeModal" />
   </div>
 </template>
 
@@ -269,11 +350,39 @@ function colorClass(value: number | null): string {
   gap: 0.75rem;
 }
 
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .table-title {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
   color: #0f172a;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-export {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #fff;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.btn-export:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 .table-scroll {

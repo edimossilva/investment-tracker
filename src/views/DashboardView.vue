@@ -5,9 +5,8 @@ import PeriodFilter from '@/components/PeriodFilter.vue'
 import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
-import AddEntryModal from '@/components/AddEntryModal.vue'
-import AddInstitutionModal from '@/components/AddInstitutionModal.vue'
 import SyncControls from '@/components/SyncControls.vue'
+import SummaryBoard from '@/components/SummaryBoard.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useInvestmentsStore } from '@/stores/investments'
 
@@ -22,20 +21,7 @@ watch(user, (u) => {
   }
 })
 
-const showAddModal = ref(false)
-const showAddInstitutionModal = ref(false)
-const editDate = ref<string>()
 const signingIn = ref(false)
-
-function openEdit(date: string) {
-  editDate.value = date
-  showAddModal.value = true
-}
-
-function closeModal() {
-  showAddModal.value = false
-  editDate.value = undefined
-}
 
 async function handleSignIn() {
   signingIn.value = true
@@ -70,21 +56,17 @@ async function handleSignIn() {
       <DashboardHeader />
       <div class="header-actions">
         <SyncControls />
-        <button class="btn-add" @click="showAddInstitutionModal = true">+ Add Institution</button>
-        <button class="btn-add" @click="showAddModal = true">+ Add Entry</button>
       </div>
     </div>
-    <AddInstitutionModal
-      v-if="showAddInstitutionModal"
-      @close="showAddInstitutionModal = false"
-    />
-    <AddEntryModal v-if="showAddModal" :edit-date="editDate" @close="closeModal" />
-    <div class="card filters-card">
-      <PeriodFilter />
-      <InstitutionFilter />
+    <div class="summary-row">
+      <div class="card filters-card">
+        <PeriodFilter />
+        <InstitutionFilter />
+      </div>
+      <SummaryBoard />
     </div>
     <div class="card">
-      <InvestmentTable @edit-date="openEdit" />
+      <InvestmentTable />
     </div>
     <div class="card">
       <InvestmentChart />
@@ -111,6 +93,12 @@ async function handleSignIn() {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
+}
+
+.summary-row {
+  display: flex;
+  gap: 1.5rem;
 }
 
 .header-row {
@@ -122,23 +110,6 @@ async function handleSignIn() {
 
 .header-row > :first-child {
   flex: 1;
-}
-
-.btn-add {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-  white-space: nowrap;
-}
-
-.btn-add:hover {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .header-actions {

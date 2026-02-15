@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useInvestmentsStore } from '@/stores/investments'
+import AddInstitutionModal from '@/components/AddInstitutionModal.vue'
 
 const store = useInvestmentsStore()
+const showAddModal = ref(false)
 </script>
 
 <template>
@@ -23,7 +26,9 @@ const store = useInvestmentsStore()
       >
         {{ name }}
       </button>
+      <button class="chip chip-add" @click="showAddModal = true">+</button>
     </div>
+    <AddInstitutionModal v-if="showAddModal" @close="showAddModal = false" />
   </div>
 </template>
 
@@ -95,5 +100,17 @@ const store = useInvestmentsStore()
   background: #eff6ff;
   border-color: #3b82f6;
   color: #1e40af;
+}
+
+.chip-add {
+  border-style: dashed;
+  color: #3b82f6;
+  border-color: #93c5fd;
+  font-weight: 700;
+}
+
+.chip-add:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
 }
 </style>
