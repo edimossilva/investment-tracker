@@ -31,10 +31,28 @@ function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+function formatSignedCurrency(value: number): string {
+  const formatted = formatCurrency(Math.abs(value))
+  return value >= 0 ? `+${formatted}` : `-${formatted}`
+}
+
+function getColor(institution: string): string {
+  return COLORS[store.institutionNames.indexOf(institution) % COLORS.length]!
+}
+
+const chartTitle = computed(() => {
+  const titles: Record<string, string> = {
+    'portfolio-value': 'Portfolio Value',
+    'value-added': 'Value Added per Period',
+    performance: 'Performance (Returns)',
+    'total-portfolio': 'Total Portfolio',
+  }
+  return titles[store.chartMode] || 'Investment History'
+})
+
 const chartData = computed(() => {
   const filtered = store.filteredInstitutions
 
-  // Build unified sorted X-axis from all selected institutions' dates
   const dateSet = new Set<string>()
   for (const inst of filtered) {
     for (const rec of inst.investments) {
@@ -43,26 +61,33 @@ const chartData = computed(() => {
   }
   const labels = Array.from(dateSet).sort()
 
-  const datasets = filtered.flatMap((inst, i) => {
-    const color = COLORS[store.institutionNames.indexOf(inst.institution) % COLORS.length]
+  if (store.chartMode === 'portfolio-value') {
+    return { labels, datasets: buildPortfolioValue(filtered, labels) }
+  }
+  if (store.chartMode === 'value-added') {
+    return { labels, datasets: buildValueAdded(filtered, labels) }
+  }
+  if (store.chartMode === 'performance') {
+    return { labels, datasets: buildPerformance(filtered, labels) }
+  }
+  if (store.chartMode === 'total-portfolio') {
+    return { labels, datasets: buildTotalPortfolio(filtered, labels) }
+  }
+  return { labels, datasets: [] }
+})
 
-    // Build date -> record map for alignment
+function buildPortfolioValue(
+  filtered: typeof store.filteredInstitutions,
+  labels: string[],
+) {
+  return filtered.flatMap((inst) => {
+    const color = getColor(inst.institution)
     const dateMap = new Map(inst.investments.map((r) => [r.date, r]))
-
-    const beforeData = labels.map((date) => {
-      const rec = dateMap.get(date)
-      return rec ? rec.amount_before_investment : null
-    })
-
-    const afterData = labels.map((date) => {
-      const rec = dateMap.get(date)
-      return rec ? rec.amount_after_investment : null
-    })
 
     return [
       {
         label: `${inst.institution} (before)`,
-        data: beforeData,
+        data: labels.map((d) => dateMap.get(d)?.amount_before_investment ?? null),
         borderColor: color,
         backgroundColor: color,
         borderWidth: 2,
@@ -72,7 +97,7 @@ const chartData = computed(() => {
       },
       {
         label: `${inst.institution} (after)`,
-        data: afterData,
+        data: labels.map((d) => dateMap.get(d)?.amount_after_investment ?? null),
         borderColor: color,
         backgroundColor: color,
         borderDash: [5, 5],
@@ -83,9 +108,127 @@ const chartData = computed(() => {
       },
     ]
   })
+}
 
-  return { labels, datasets }
-})
+function buildValueAdded(
+  filtered: typeof store.filteredInstitutions,
+  labels: string[],
+) {
+  return filtered.map((inst) => {
+    const color = getColor(inst.institution)
+    const dateMap = new Map(inst.investments.map((r) => [r.date, r]))
+
+    return {
+      label: inst.institution,
+      data: labels.map((d) => {
+        const rec = dateMap.get(d)
+        return rec ? rec.amount_after_investment - rec.amount_before_investment : null
+      }),
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: 2,
+      pointRadius: 3,
+      spanGaps: true,
+      tension: 0.1,
+    }
+  })
+}
+
+function buildPerformance(
+  filtered: typeof store.filteredInstitutions,
+  labels: string[],
+) {
+  return filtered.map((inst) => {
+    const color = getColor(inst.institution)
+    const dateMap = new Map(inst.investments.map((r) => [r.date, r]))
+
+    // Get sorted dates that exist for this institution within the labels
+    const instDates = labels.filter((d) => dateMap.has(d))
+    const prevAfterMap = new Map<string, number>()
+    for (let i = 1; i < instDates.length; i++) {
+      prevAfterMap.set(instDates[i]!, dateMap.get(instDates[i - 1]!)!.amount_after_investment)
+    }
+
+    return {
+      label: inst.institution,
+      data: labels.map((d) => {
+        const rec = dateMap.get(d)
+        const prevAfter = prevAfterMap.get(d)
+        if (!rec || prevAfter === undefined) return null
+        return rec.amount_before_investment - prevAfter
+      }),
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: 2,
+      pointRadius: 3,
+      spanGaps: true,
+      tension: 0.1,
+    }
+  })
+}
+
+function buildTotalPortfolio(
+  filtered: typeof store.filteredInstitutions,
+  labels: string[],
+) {
+  const dateMaps = filtered.map((inst) =>
+    new Map(inst.investments.map((r) => [r.date, r])),
+  )
+
+  const totalBefore = labels.map((d) => {
+    let sum = 0
+    let any = false
+    for (const dm of dateMaps) {
+      const rec = dm.get(d)
+      if (rec) {
+        sum += rec.amount_before_investment
+        any = true
+      }
+    }
+    return any ? sum : null
+  })
+
+  const totalAfter = labels.map((d) => {
+    let sum = 0
+    let any = false
+    for (const dm of dateMaps) {
+      const rec = dm.get(d)
+      if (rec) {
+        sum += rec.amount_after_investment
+        any = true
+      }
+    }
+    return any ? sum : null
+  })
+
+  return [
+    {
+      label: 'Total (before)',
+      data: totalBefore,
+      borderColor: '#3b82f6',
+      backgroundColor: '#3b82f6',
+      borderWidth: 2,
+      pointRadius: 2,
+      spanGaps: true,
+      tension: 0.1,
+    },
+    {
+      label: 'Total (after)',
+      data: totalAfter,
+      borderColor: '#3b82f6',
+      backgroundColor: '#3b82f6',
+      borderDash: [5, 5],
+      borderWidth: 2,
+      pointRadius: 2,
+      spanGaps: true,
+      tension: 0.1,
+    },
+  ]
+}
+
+const useSignedFormat = computed(() =>
+  store.chartMode === 'value-added' || store.chartMode === 'performance',
+)
 
 const chartOptions = computed(() => ({
   responsive: true,
@@ -93,7 +236,7 @@ const chartOptions = computed(() => ({
   plugins: {
     title: {
       display: true,
-      text: 'Investment History',
+      text: chartTitle.value,
       font: { size: 14, weight: 'bold' as const },
       color: '#0f172a',
       padding: { bottom: 16 },
@@ -109,7 +252,10 @@ const chartOptions = computed(() => ({
           const label = context.dataset.label || ''
           const value = context.parsed.y
           if (value === null) return label
-          return `${label}: ${formatCurrency(value)}`
+          const formatted = useSignedFormat.value
+            ? formatSignedCurrency(value)
+            : formatCurrency(value)
+          return `${label}: ${formatted}`
         },
       },
     },
@@ -134,7 +280,7 @@ const chartOptions = computed(() => ({
         font: { size: 11 },
         callback: (value: string | number) => {
           if (typeof value === 'number') {
-            return formatCurrency(value)
+            return useSignedFormat.value ? formatSignedCurrency(value) : formatCurrency(value)
           }
           return value
         },

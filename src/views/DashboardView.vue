@@ -4,6 +4,7 @@ import DashboardHeader from '@/components/DashboardHeader.vue'
 import PeriodFilter from '@/components/PeriodFilter.vue'
 import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
+import ChartModeSelector from '@/components/ChartModeSelector.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
 import SyncControls from '@/components/SyncControls.vue'
 import SummaryBoard from '@/components/SummaryBoard.vue'
@@ -69,6 +70,7 @@ async function handleSignIn() {
       <InvestmentTable />
     </div>
     <div class="card">
+      <ChartModeSelector />
       <InvestmentChart />
     </div>
   </div>

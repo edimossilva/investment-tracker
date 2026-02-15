@@ -16,12 +16,14 @@ function loadDataForUser(uid: string): InstitutionData[] {
 }
 
 export type Period = 'full-time' | 'past-3-months' | 'past-6-months' | 'past-12-months'
+export type ChartMode = 'portfolio-value' | 'value-added' | 'performance' | 'total-portfolio'
 
 export const useInvestmentsStore = defineStore('investments', () => {
   const currentUid = ref<string | null>(null)
   const institutions = ref<InstitutionData[]>([])
   const selectedInstitutions = ref<Set<string>>(new Set())
   const selectedPeriod = ref<Period>('past-3-months')
+  const chartMode = ref<ChartMode>('portfolio-value')
 
   const institutionNames = computed(() => institutions.value.map((d) => d.institution))
 
@@ -73,6 +75,10 @@ export const useInvestmentsStore = defineStore('investments', () => {
 
   function setPeriod(period: Period) {
     selectedPeriod.value = period
+  }
+
+  function setChartMode(mode: ChartMode) {
+    chartMode.value = mode
   }
 
   function addRecords(date: string, records: Map<string, { before: number; after: number }>) {
@@ -148,12 +154,14 @@ export const useInvestmentsStore = defineStore('investments', () => {
     institutions,
     selectedInstitutions,
     selectedPeriod,
+    chartMode,
     institutionNames,
     filteredInstitutions,
     toggleInstitution,
     selectAll,
     selectNone,
     setPeriod,
+    setChartMode,
     addRecords,
     addInstitution,
     removeRecordsByDate,
