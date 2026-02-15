@@ -6,6 +6,7 @@ import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
 import AddEntryModal from '@/components/AddEntryModal.vue'
+import SyncControls from '@/components/SyncControls.vue'
 
 const showAddModal = ref(false)
 const editDate = ref<string>()
@@ -25,7 +26,10 @@ function closeModal() {
   <div class="dashboard">
     <div class="header-row">
       <DashboardHeader />
-      <button class="btn-add" @click="showAddModal = true">+ Add Entry</button>
+      <div class="header-actions">
+        <SyncControls />
+        <button class="btn-add" @click="showAddModal = true">+ Add Entry</button>
+      </div>
     </div>
     <AddEntryModal v-if="showAddModal" :edit-date="editDate" @close="closeModal" />
     <div class="card filters-card">
@@ -90,4 +94,10 @@ function closeModal() {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
 </style>

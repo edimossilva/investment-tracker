@@ -40,3 +40,6 @@ __screenshots__/
 
 # Data
 investments.json
+
+# Environment variables
+.env

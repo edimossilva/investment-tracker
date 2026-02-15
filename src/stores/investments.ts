@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { InstitutionData } from '@/types/investment'
+import { pushData, pullData } from '@/services/firestore-sync'
 import rawData from '../../investments.json'
 
 const STORAGE_KEY = 'investments-data'
@@ -110,6 +111,17 @@ export const useInvestmentsStore = defineStore('investments', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(institutions.value))
   }
 
+  async function pushToRemote() {
+    await pushData(institutions.value)
+  }
+
+  async function pullFromRemote() {
+    const data = await pullData()
+    institutions.value = data
+    selectedInstitutions.value = new Set(data.map((d) => d.institution))
+    saveData()
+  }
+
   return {
     institutions,
     selectedInstitutions,
@@ -123,5 +135,7 @@ export const useInvestmentsStore = defineStore('investments', () => {
     addRecords,
     removeRecordsByDate,
     saveData,
+    pushToRemote,
+    pullFromRemote,
   }
 })
