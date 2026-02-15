@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
 import PeriodFilter from '@/components/PeriodFilter.vue'
 import InstitutionFilter from '@/components/InstitutionFilter.vue'
@@ -7,9 +7,23 @@ import InvestmentChart from '@/components/InvestmentChart.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
 import AddEntryModal from '@/components/AddEntryModal.vue'
 import SyncControls from '@/components/SyncControls.vue'
+import { useAuth } from '@/composables/useAuth'
+import { useInvestmentsStore } from '@/stores/investments'
+
+const { user, authReady, signIn } = useAuth()
+const store = useInvestmentsStore()
+
+watch(user, (u) => {
+  if (u) {
+    store.loadForUser(u.uid)
+  } else {
+    store.clearData()
+  }
+})
 
 const showAddModal = ref(false)
 const editDate = ref<string>()
+const signingIn = ref(false)
 
 function openEdit(date: string) {
   editDate.value = date
@@ -20,10 +34,36 @@ function closeModal() {
   showAddModal.value = false
   editDate.value = undefined
 }
+
+async function handleSignIn() {
+  signingIn.value = true
+  try {
+    await signIn()
+  } finally {
+    signingIn.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="dashboard">
+  <div v-if="!authReady" class="login-screen">
+    <div class="login-card">
+      <h1 class="login-title">Investment Tracker</h1>
+      <p class="login-subtitle">Loading...</p>
+    </div>
+  </div>
+
+  <div v-else-if="!user" class="login-screen">
+    <div class="login-card">
+      <h1 class="login-title">Investment Tracker</h1>
+      <p class="login-subtitle">Sign in to access your portfolio</p>
+      <button class="btn-google" :disabled="signingIn" @click="handleSignIn">
+        Sign in with Google
+      </button>
+    </div>
+  </div>
+
+  <div v-else class="dashboard">
     <div class="header-row">
       <DashboardHeader />
       <div class="header-actions">
@@ -99,5 +139,55 @@ function closeModal() {
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+}
+
+.login-subtitle {
+  margin: 0.5rem 0 2rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.btn-google {
+  padding: 0.65rem 1.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-google:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

@@ -2,23 +2,25 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { InstitutionData } from '@/types/investment'
 import { pushData, pullData } from '@/services/firestore-sync'
-import rawData from '../../investments.json'
 
-const STORAGE_KEY = 'investments-data'
+const STORAGE_PREFIX = 'investments-data-'
 
-function loadData(): InstitutionData[] {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored) return JSON.parse(stored) as InstitutionData[]
-  return rawData as InstitutionData[]
+function storageKey(uid: string) {
+  return `${STORAGE_PREFIX}${uid}`
 }
 
-const data = loadData()
+function loadDataForUser(uid: string): InstitutionData[] {
+  const stored = localStorage.getItem(storageKey(uid))
+  if (stored) return JSON.parse(stored) as InstitutionData[]
+  return []
+}
 
 export type Period = 'full-time' | 'past-3-months' | 'past-6-months' | 'past-12-months'
 
 export const useInvestmentsStore = defineStore('investments', () => {
-  const institutions = ref<InstitutionData[]>(data)
-  const selectedInstitutions = ref<Set<string>>(new Set(data.map((d) => d.institution)))
+  const currentUid = ref<string | null>(null)
+  const institutions = ref<InstitutionData[]>([])
+  const selectedInstitutions = ref<Set<string>>(new Set())
   const selectedPeriod = ref<Period>('past-3-months')
 
   const institutionNames = computed(() => institutions.value.map((d) => d.institution))
@@ -108,7 +110,21 @@ export const useInvestmentsStore = defineStore('investments', () => {
   }
 
   function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(institutions.value))
+    if (!currentUid.value) return
+    localStorage.setItem(storageKey(currentUid.value), JSON.stringify(institutions.value))
+  }
+
+  function loadForUser(uid: string) {
+    currentUid.value = uid
+    const data = loadDataForUser(uid)
+    institutions.value = data
+    selectedInstitutions.value = new Set(data.map((d) => d.institution))
+  }
+
+  function clearData() {
+    currentUid.value = null
+    institutions.value = []
+    selectedInstitutions.value = new Set()
   }
 
   async function pushToRemote() {
@@ -135,6 +151,8 @@ export const useInvestmentsStore = defineStore('investments', () => {
     addRecords,
     removeRecordsByDate,
     saveData,
+    loadForUser,
+    clearData,
     pushToRemote,
     pullFromRemote,
   }

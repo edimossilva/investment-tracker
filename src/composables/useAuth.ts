@@ -4,6 +4,7 @@ import type { User, Unsubscribe } from 'firebase/auth'
 import { auth, googleProvider } from '@/services/firebase'
 
 const user = ref<User | null>(null)
+const authReady = ref(false)
 
 export function useAuth() {
   let unsubscribe: Unsubscribe | null = null
@@ -11,6 +12,7 @@ export function useAuth() {
   onMounted(() => {
     unsubscribe = onAuthStateChanged(auth, (u) => {
       user.value = u
+      authReady.value = true
     })
   })
 
@@ -26,5 +28,5 @@ export function useAuth() {
     await firebaseSignOut(auth)
   }
 
-  return { user, signIn, signOut }
+  return { user, authReady, signIn, signOut }
 }
