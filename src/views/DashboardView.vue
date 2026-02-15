@@ -6,6 +6,7 @@ import InstitutionFilter from '@/components/InstitutionFilter.vue'
 import InvestmentChart from '@/components/InvestmentChart.vue'
 import InvestmentTable from '@/components/InvestmentTable.vue'
 import AddEntryModal from '@/components/AddEntryModal.vue'
+import AddInstitutionModal from '@/components/AddInstitutionModal.vue'
 import SyncControls from '@/components/SyncControls.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useInvestmentsStore } from '@/stores/investments'
@@ -22,6 +23,7 @@ watch(user, (u) => {
 })
 
 const showAddModal = ref(false)
+const showAddInstitutionModal = ref(false)
 const editDate = ref<string>()
 const signingIn = ref(false)
 
@@ -68,9 +70,14 @@ async function handleSignIn() {
       <DashboardHeader />
       <div class="header-actions">
         <SyncControls />
+        <button class="btn-add" @click="showAddInstitutionModal = true">+ Add Institution</button>
         <button class="btn-add" @click="showAddModal = true">+ Add Entry</button>
       </div>
     </div>
+    <AddInstitutionModal
+      v-if="showAddInstitutionModal"
+      @close="showAddInstitutionModal = false"
+    />
     <AddEntryModal v-if="showAddModal" :edit-date="editDate" @close="closeModal" />
     <div class="card filters-card">
       <PeriodFilter />

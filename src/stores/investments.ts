@@ -101,6 +101,12 @@ export const useInvestmentsStore = defineStore('investments', () => {
     institutions.value = [...institutions.value]
   }
 
+  function addInstitution(name: string) {
+    institutions.value = [...institutions.value, { institution: name, investments: [] }]
+    selectedInstitutions.value = new Set([...selectedInstitutions.value, name])
+    saveData()
+  }
+
   function removeRecordsByDate(date: string) {
     for (const inst of institutions.value) {
       inst.investments = inst.investments.filter((r) => r.date !== date)
@@ -149,6 +155,7 @@ export const useInvestmentsStore = defineStore('investments', () => {
     selectNone,
     setPeriod,
     addRecords,
+    addInstitution,
     removeRecordsByDate,
     saveData,
     loadForUser,
